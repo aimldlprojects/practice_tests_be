@@ -235,6 +235,74 @@ def get_subjects_pg():
             cursor.close()
             connection.close()
 
+# Function to get all Related Subjects for User
+def get_related_subjects_pg(username):
+    try:
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
+        query = """
+        SELECT s.subject_id, s.subject_name
+        FROM subjects s
+        JOIN user_subjects us ON s.subject_id = us.subject_id
+        JOIN users u ON us.user_id = u.user_id
+        WHERE u.username = %s;
+        """
+        cursor.execute(query, (username,))
+        subjects = cursor.fetchall()
+        return subjects
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+# Function to get all Related Topics for User and Subject
+def get_related_topics_pg(username, subject_name):
+    try:
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
+        query = """
+        SELECT t.topic_id, t.topic_name
+        FROM topics t
+        JOIN subjects s ON t.subject_id = s.subject_id
+        JOIN user_topics ut ON t.topic_id = ut.topic_id
+        JOIN users u ON ut.user_id = u.user_id
+        WHERE u.username = %s AND s.subject_name = %s;
+        """
+        cursor.execute(query, (username, subject_name))
+        topics = cursor.fetchall()
+        return topics
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+# Function to get all questions for a topic of the selected subject and user
+def get_releated_questions_pg(username, subject_name, topic_name):
+    try:
+        connection = psycopg2.connect(DATABASE_URL)
+        cursor = connection.cursor()
+        query = """
+        SELECT q.question_id, q.question_text, q.options, q.question_type, q.answer
+        FROM questions q
+        JOIN topics t ON q.topic_id = t.topic_id
+        JOIN subjects s ON t.subject_id = s.subject_id
+        JOIN user_topics ut ON t.topic_id = ut.topic_id
+        JOIN users u ON ut.user_id = u.user_id
+        WHERE u.username = %s AND s.subject_name = %s AND t.topic_name = %s;
+        """
+        cursor.execute(query, (username, subject_name, topic_name))
+        questions = cursor.fetchall()
+        return questions
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
 # Function to get all topics
 def get_topics_pg():
     try:

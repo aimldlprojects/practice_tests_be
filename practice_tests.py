@@ -6,10 +6,6 @@ from postgres import *
 
 app = FastAPI()
 
-
-
-
-
 @app.get("/get_users")
 async def get_users():
     users_details = get_users_pg()
@@ -18,35 +14,21 @@ async def get_users():
 
 @app.get("/get_subjects")
 async def get_subjects(user: str = Query(..., description="User name")):
-    if user in subjects:
-        return {"subject": subjects[user]}
-    else:
-        return {"error": "User not found"}
+    subjects = get_related_subjects_pg(user)
+    subjects = [subject[1] for subject in subjects]
+    return {"subjects": subjects}
 
 @app.get("/get_topics")
 async def get_topics(user: str = Query(..., description="User name"), subject: str = Query(..., description="Subject name")):
-    if user in topics and subject in topics[user]:
-        return {"topic": topics[user][subject]}
-    else:
-        return {"error": "User or subject not found"}
+    topics = get_related_topics_pg(user, subject)
+    topics = [topic[1] for topic in topics]
+    return {"topics": topics}
+
 
 @app.get("/get_questions")
 async def get_questions(user: str = Query(..., description="User name"), subject: str = Query(..., description="Subject name"), topic: str = Query(..., description="Topic name")):
-    if user in questions and subject in questions[user] and topic in questions[user][subject]:
-        # Get a random question from the list
-        question_data = random.choice(questions[user][subject][topic])
-        question_number = 1  # Replace with actual question number logic
-        total_questions = len(questions[user][subject][topic]) 
-        return {
-            "question": question_data["question"],
-            "options": question_data["options"],
-            "question_type": question_data["question_type"],
-            "question_number": question_number,
-            "total_questions": total_questions,
-            "test_status": "not_completed" if total_questions > question_number else "completed",
-        }
-    else:
-        return {"error": "User, subject, or topic not found"}
+    questions = get_releated_questions_pg(user, subject, topic)
+    return {"questions": questions}
 
 @app.get("/check_answer")
 async def check_answer(user: str = Query(..., description="User name"), subject: str = Query(..., description="Subject name"), topic: str = Query(..., description="Topic name"), question: str = Query(..., description="question"), answer: str = Query(..., description="User's answer")):
@@ -77,4 +59,4 @@ async def check_answer(user: str = Query(..., description="User name"), subject:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("practice_tests:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("practice_tests:app", host="127.0.0.1", port=8055, reload=True)
